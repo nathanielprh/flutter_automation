@@ -8,8 +8,6 @@ import 'core/storage/secure_storage_service.dart';
 /// Auth
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
-import 'features/auth/domain/usecases/login_usecase.dart';
-import 'features/auth/domain/usecases/register_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 
 /// Chat
@@ -47,15 +45,12 @@ Future<void> main() async {
     storage: secureStorage,
   );
 
-  final loginUseCase = LoginUseCase(authRepository);
-  final registerUseCase = RegisterUseCase(authRepository);
-
   //---------------------------------------------------
   // Chat
   //---------------------------------------------------
 
   final chatRepository = ChatRepositoryImpl(
-    remoteDatasource: ChatRemoteDatasource(dioClient: dioClient),
+    remote: ChatRemoteDataSource(dioClient: dioClient),
   );
 
   //---------------------------------------------------
@@ -68,8 +63,7 @@ Future<void> main() async {
 
   runApp(
     MyApp(
-      loginUseCase: loginUseCase,
-      registerUseCase: registerUseCase,
+      authRepository: authRepository,
       chatRepository: chatRepository,
       profileRepository: profileRepository,
     ),
@@ -77,15 +71,13 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  final LoginUseCase loginUseCase;
-  final RegisterUseCase registerUseCase;
+  final AuthRepositoryImpl authRepository;
   final ChatRepositoryImpl chatRepository;
   final ProfileRepositoryImpl profileRepository;
 
-  const MyApp({
+  MyApp({
     super.key,
-    required this.loginUseCase,
-    required this.registerUseCase,
+    required this.authRepository,
     required this.chatRepository,
     required this.profileRepository,
   });
@@ -95,12 +87,10 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (_) => AuthBloc(loginUseCase, registerUseCase),
+          create: (_) => AuthBloc(repository: authRepository),
         ),
 
-        BlocProvider<ChatBloc>(
-          create: (_) => ChatBloc(repository: chatRepository),
-        ),
+        BlocProvider<ChatBloc>(create: (_) => ChatBloc(chatRepository)),
 
         BlocProvider<ProfileBloc>(
           create: (_) => ProfileBloc(repository: profileRepository),

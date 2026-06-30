@@ -25,10 +25,10 @@ class _LoginPageState extends State<LoginPage> {
         padding: const EdgeInsets.all(20),
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
-            if (state is AuthAuthenticated) {
+            if (state is AuthenticatedState) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const ChatPage()),
+                MaterialPageRoute(builder: (_) => const ChatScreen()),
               );
             }
           },

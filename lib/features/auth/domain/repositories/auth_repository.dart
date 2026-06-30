@@ -6,4 +6,10 @@ abstract class AuthRepository {
     required String email,
     required String password,
   });
+
+  Future<bool> hasValidSession();
+
+  Future<void> logout();
+
+  Future<void> getRefreshToken();
 }

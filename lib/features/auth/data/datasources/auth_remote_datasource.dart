@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_automation/features/auth/domain/entities/user_entity.dart';
 
 import '../models/auth_response_model.dart';
 
@@ -7,7 +8,7 @@ class AuthRemoteDataSource {
 
   AuthRemoteDataSource(this.dio);
 
-  Future<AuthResponseModel> login({
+  Future<(String access_token, String refresh_token, UserEntity? user)> login({
     required String email,
     required String password,
   }) async {
@@ -18,8 +19,12 @@ class AuthRemoteDataSource {
     );
 
     print('\n\n this is the login response: $response\n\n');
+    String access_token = response.data["access_token"];
+    String refresh_token = response.data["refresh_token"];
 
-    return AuthResponseModel.fromJson(response.data);
+    UserEntity user = AuthResponseModel.fromJson(response.data["user"]);
+    print("for the datasource ${user.email}");
+    return (access_token, refresh_token, user);
   }
 
   Future<void> register({
@@ -32,5 +37,13 @@ class AuthRemoteDataSource {
 
       data: {'username': username, 'email': email, 'password': password},
     );
+  }
+
+  Future<String> getRefreshToken(String? refreshToken) async {
+    final response = await dio.post(
+      "/auth/refresh_token",
+      data: {"refresh_token": refreshToken},
+    );
+    return response.data["access_token"];
   }
 }

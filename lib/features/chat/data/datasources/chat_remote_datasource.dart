@@ -1,30 +1,49 @@
-import 'package:dio/dio.dart';
-
 import '../../../../core/network/dio_client.dart';
+import '../models/chat_message_model.dart';
+import '../models/conversation_model.dart';
 
-import '../models/chat_request_model.dart';
-import '../models/chat_response_model.dart';
-
-class ChatRemoteDatasource {
+class ChatRemoteDataSource {
   final DioClient dioClient;
 
-  ChatRemoteDatasource({required this.dioClient});
+  ChatRemoteDataSource({required this.dioClient});
 
-  Future<ChatResponseModel> sendMessage(String message) async {
-    try {
-      // Create request body
-      final request = ChatRequestModel(message: message);
+  // Send message to backend
+  Future<Map<String, dynamic>> sendMessage({
+    int? conversationId,
+    required String message,
+  }) async {
+    final response = await dioClient.dio.post(
+      '/chat',
+      data: {"conversation_id": conversationId, "message": message},
+    );
+    print("AI response(datasource): ${response.data}");
 
-      // Send POST request
-      final response = await dioClient.dio.post(
-        "/chat",
-        data: request.toJson(),
-      );
+    return response.data;
+  }
 
-      // Convert JSON to model
-      return ChatResponseModel.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(e.response?.data["detail"] ?? "Failed to send message");
-    }
+  // Get all conversations
+  Future<List<ConversationModel>> getConversations() async {
+    // 1. See what headers (including your JWT Token) Dio is attaching
+    print("Dio Request Options Headers: ${dioClient.dio.options.headers}");
+
+    final response = await dioClient.dio.get('/chat/conversations');
+
+    // 2. See the raw JSON payload coming back from FastAPI
+    print("FastAPI Conversations Response Data: ${response.data}");
+
+    return (response.data as List)
+        .map((e) => ConversationModel.fromJson(e))
+        .toList();
+  }
+
+  // Get messages
+  Future<List<ChatMessageModel>> getMessages(int conversationId) async {
+    final response = await dioClient.dio.get(
+      '/chat/conversations/$conversationId/messages',
+    );
+
+    return (response.data as List)
+        .map((e) => ChatMessageModel.fromJson(e))
+        .toList();
   }
 }

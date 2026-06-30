@@ -1,107 +1,62 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../bloc/chat_bloc.dart';
-
 import '../bloc/chat_event.dart';
+import '../widgets/conversation_list_view.dart';
+import '../widgets/message_history_view.dart';
 
-import '../bloc/chat_state.dart';
-
-import '../widgets/chat_bubble.dart';
-
-class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatPageState extends State<ChatPage> {
-  final TextEditingController controller = TextEditingController();
+class _ChatScreenState extends State<ChatScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch the list of historical chats as soon as the screen opens
+    context.read<ChatBloc>().add(LoadConversationsEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isWideScreen = MediaQuery.of(context).size.width > 768;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("AI Chat")),
-
-      body: Column(
+      appBar: AppBar(
+        title: const Text('AI Assistant'),
+        elevation: 1,
+        // Only show drawer button if we are on a narrow/mobile layout
+        leading: isWideScreen
+            ? null
+            : Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
+      ),
+      // Drawer layout for mobile devices
+      drawer: isWideScreen
+          ? null
+          : const Drawer(child: SafeArea(child: ConversationListView())),
+      body: Row(
         children: [
-          // Chat messages
-          Expanded(
-            child: BlocBuilder<ChatBloc, ChatState>(
-              builder: (context, state) {
-                return ListView.builder(
-                  padding: const EdgeInsets.only(top: 10),
-
-                  itemCount: state.messages.length,
-
-                  itemBuilder: (context, index) {
-                    final message = state.messages[index];
-
-                    return ChatBubble(
-                      message: message.message,
-                      isUser: message.isUser,
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-
-          // Loading indicator
-          BlocBuilder<ChatBloc, ChatState>(
-            builder: (context, state) {
-              if (!state.isLoading) {
-                return const SizedBox();
-              }
-
-              return const Padding(
-                padding: EdgeInsets.all(8),
-
-                child: CircularProgressIndicator(),
-              );
-            },
-          ),
-
-          // Message input
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-
-                      decoration: const InputDecoration(
-                        hintText: "Type a message...",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  IconButton(
-                    onPressed: () {
-                      final text = controller.text;
-
-                      controller.clear();
-
-                      // Send event to bloc
-                      context.read<ChatBloc>().add(
-                        SendMessageEvent(message: text),
-                      );
-                    },
-
-                    icon: const Icon(Icons.send),
-                  ),
-                ],
+          // Persistent Sidebar layout for Desktop/Web/Tablets
+          if (isWideScreen)
+            const SizedBox(
+              width: 300,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(right: BorderSide(color: Colors.black12)),
+                ),
+                child: ConversationListView(),
               ),
             ),
-          ),
+          // Chat viewport takes the rest of the available space
+          const Expanded(child: MessageHistoryView()),
         ],
       ),
     );

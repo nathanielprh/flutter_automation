@@ -1,18 +1,26 @@
-import 'package:equatable/equatable.dart';
+abstract class ChatEvent {}
 
-abstract class ChatEvent extends Equatable {
-  const ChatEvent();
-
-  @override
-  List<Object?> get props => [];
-}
-
-// Event fired when user sends message
+// Event to send a message in a new or existing conversation
 class SendMessageEvent extends ChatEvent {
   final String message;
+  final int? conversationId;
 
-  const SendMessageEvent({required this.message});
+  SendMessageEvent({required this.message, this.conversationId});
+}
 
-  @override
-  List<Object?> get props => [message];
+// Event to load messages inside a specific active conversation
+class LoadMessagesEvent extends ChatEvent {
+  final int conversationId;
+
+  LoadMessagesEvent(this.conversationId);
+}
+
+// Event to fetch the sidebar/list of all past conversations
+class LoadConversationsEvent extends ChatEvent {
+  LoadConversationsEvent();
+}
+
+// Event to clear active conversation history and start fresh
+class ResetChatEvent extends ChatEvent {
+  ResetChatEvent();
 }

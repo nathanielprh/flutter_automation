@@ -1,44 +1,36 @@
-import 'package:equatable/equatable.dart';
-
 import '../../domain/entities/chat_message_entity.dart';
+import '../../domain/entities/conversation_entity.dart';
 
-class ChatState extends Equatable {
+class ChatState {
+  final int? conversationId;
   final List<ChatMessageEntity> messages;
+  final List<ConversationEntity>
+  conversations; // Added to hold the list of conversations
+  final bool loading;
+  final String? error; // Added for error handling
 
-  final bool isLoading;
-
-  final String? error;
-
-  const ChatState({
-    required this.messages,
-
-    required this.isLoading,
-
+  ChatState({
+    this.conversationId,
+    this.messages = const [],
+    this.conversations = const [],
+    this.loading = false,
     this.error,
   });
 
-  // Initial state
-  factory ChatState.initial() {
-    return const ChatState(messages: [], isLoading: false);
-  }
-
-  // Copy state with updates
   ChatState copyWith({
+    int? conversationId,
     List<ChatMessageEntity>? messages,
-
-    bool? isLoading,
-
+    List<ConversationEntity>? conversations,
+    bool? loading,
     String? error,
   }) {
     return ChatState(
+      conversationId: conversationId ?? this.conversationId,
       messages: messages ?? this.messages,
-
-      isLoading: isLoading ?? this.isLoading,
-
-      error: error,
+      conversations: conversations ?? this.conversations,
+      loading: loading ?? this.loading,
+      error:
+          error, // Intentional override to clear error if not explicitly passed
     );
   }
-
-  @override
-  List<Object?> get props => [messages, isLoading, error];
 }

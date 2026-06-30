@@ -1,9 +1,18 @@
+// Represents a single message in a conversation
+// This is PURE logic layer (no JSON, no API)
+
 class ChatMessageEntity {
-  final String message;
+  final int? id;
+  final int? conversationId;
+  final String role; // "user" or "assistant"
+  final String content;
+  final DateTime? createdAt;
 
-  // true = user message
-  // false = AI message
-  final bool isUser;
-
-  ChatMessageEntity({required this.message, required this.isUser});
+  ChatMessageEntity({
+    this.id,
+    this.conversationId,
+    required this.role,
+    required this.content,
+    this.createdAt,
+  });
 }
